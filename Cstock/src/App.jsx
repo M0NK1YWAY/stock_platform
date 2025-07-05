@@ -1,6 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import SinaStockTable from "./components/SinaStockTable";
-import StockDetail from "./components/StockDetail";
+import StockDetail from "./pages/StockDetail";
 
 function App() {
   return (
