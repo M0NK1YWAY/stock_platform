@@ -1,0 +1,67 @@
+/* Reset the Vite template styles */
+#root {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+  font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background-color: #ffffff;
+  color: #1a1a1a;
+  text-align: left;
+}
+
+/* Remove unused logo styles */
+.logo, .card, .read-the-docs {
+  display: none;
+}
+
+/* Header */
+h1 {
+  font-size: 1.8rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+}
+
+/* Table layout */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+  text-align: left;
+  margin-top: 1rem;
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.05);
+}
+
+thead {
+  background-color: #f5f5f5;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+th, td {
+  padding: 10px 12px;
+  border-bottom: 1px solid #eee;
+}
+
+td {
+  white-space: nowrap;
+}
+
+th {
+  font-weight: 600;
+  color: #555;
+}
+
+/* Hover row effect */
+tr:hover {
+  background-color: #fafafa;
+}
+
+/* Colors for gain/loss */
+.green {
+  color: #0abf53;
+  font-weight: 500;
+}
+
+.red {
+  color: #e74c3c;
+  font-weight: 500;
+}
