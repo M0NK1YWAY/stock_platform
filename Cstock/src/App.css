@@ -1,6 +1,6 @@
 /* Reset the Vite template styles */
 #root {
-  max-width: 1200px;
+  max-width: 1800px;
   margin: 0 auto;
   padding: 2rem;
   font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -9,6 +9,11 @@
   text-align: left;
 }
 
+body {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
 /* Remove unused logo styles */
 .logo, .card, .read-the-docs {
   display: none;

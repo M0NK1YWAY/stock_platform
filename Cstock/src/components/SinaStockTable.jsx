@@ -19,6 +19,7 @@ export default function SinaStockTable() {
   const itemsPerPage = 20;
   const [liveData, setLiveData] = useState([]);
   const [jumpPage, setJumpPage] = useState("");
+  const [loading, setLoading] = useState(true);
 
   const sortedStocks = [...liveData].sort((a, b) => {
     if (!sortConfig.key || sortConfig.direction === "none") return 0;
@@ -70,6 +71,8 @@ export default function SinaStockTable() {
         });
 
         setLiveData(parsed);
+        // Only set loading to false after first successful fetch
+        setLoading(false);
       } catch (err) {
         console.error("Failed to fetch Tencent data:", err);
       }
@@ -114,6 +117,13 @@ export default function SinaStockTable() {
       setJumpPage(""); // Clear input after jump
     }
   };
+  if (loading) {
+    return (
+      <div style={{ textAlign: "center", padding: "2rem", fontSize: "18px" }}>
+        Loading stock data...
+      </div>
+    );
+  }
 
   return (
     <>
@@ -160,7 +170,19 @@ export default function SinaStockTable() {
 
               return (
                 <tr key={stock.code}>
-                  <td style={nameStyle}>{stock.name}</td>
+                  <td style={nameStyle}>
+                    <a
+                      href={`/stock/${stock.code}`}
+                      style={{
+                        textDecoration: "none",
+                        color: "#2c5393",
+                        fontWeight: "600"
+                      }}
+                    >
+                      {stock.name}
+                    </a>
+                  </td>
+
                   <td style={tdStyle}>{stock.last}</td>
                   <td style={tdStyle}>{stock.high}</td>
                   <td style={tdStyle}>{stock.low}</td>
