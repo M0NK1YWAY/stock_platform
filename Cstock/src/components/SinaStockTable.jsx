@@ -1,9 +1,6 @@
-// import React, { useEffect, useState } from "react";
-// import axios from "axios";
-import React from "react";
-import { useState } from "react";
+import axios from "axios";
+import { useEffect, useState } from "react";
 
-import stocks from "../data/china_stocks.json";
 
 export default function SinaStockTable() {
   const [sortConfig, setSortConfig] = useState({
