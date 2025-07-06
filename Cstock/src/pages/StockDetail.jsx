@@ -11,9 +11,15 @@ export default function StockDetail({ setLoading }) {
   const [candleData, setCandleData] = useState([]);
   const [stockName, setStockName] = useState(code);
   const [prevClose, setPrevClose] = useState(null);
+  const [localLoading, setLocalLoading] = useState(true);
 
   useEffect(() => {
     const fetchChartData = async () => {
+      setLocalLoading(true); // reset local loading for new stock
+      setLoading(true); // trigger global loading
+      setChartData([]); // Clear old data before refetch
+      setCandleData([]); // Prevent stale candle chart
+
       try {
         const secid = code.startsWith("6") ? `1.${code}` : `0.${code}`;
 
@@ -45,7 +51,11 @@ export default function StockDetail({ setLoading }) {
         const stockName = res.data?.data?.name || code;
         setStockName(stockName);
 
-        const prevClose = parseFloat(res.data?.data?.preKPrice);
+        let prevClose = parseFloat(res.data?.data?.preKPrice);
+        if (!prevClose && klines.length > 0) {
+          const firstKline = klines[0].split(",");
+          prevClose = parseFloat(firstKline[1]); // fallback to open price of first bar
+        }
         setPrevClose(prevClose);
 
         const candleParsed = klines.map((entry) => {
@@ -64,6 +74,11 @@ export default function StockDetail({ setLoading }) {
         const parsed = klines.map((entry) => {
           const parts = entry.split(",");
           const price = parseFloat(parts[2]);
+          const priceChange =
+            prevClose && !isNaN(prevClose)
+              ? (price - prevClose) / prevClose
+              : 0;
+
           return {
             time: timeRange === "1D" ? parts[0].split(" ")[1] : parts[0],
             price,
@@ -71,14 +86,17 @@ export default function StockDetail({ setLoading }) {
             high: parseFloat(parts[3]),
             low: parseFloat(parts[4]),
             close: parseFloat(parts[2]),
-            priceChange: (price - prevClose) / prevClose
+            priceChange
           };
         });
+
         setChartData(parsed);
+        
       } catch (e) {
         console.error("Data fetch failed:", e);
       } finally {
-        setLoading(false); // mark loading complete globally
+        setLocalLoading(false); // stop chart loading
+        setLoading(false); // stop global overlay
       }
     };
 
@@ -158,13 +176,20 @@ export default function StockDetail({ setLoading }) {
       </div>
 
       <div style={{ padding: "1rem", width: "100%", overflowX: "auto" }}>
-        <div style={{ width: "1400px", maxWidth: "100%" }}>
-          <StockChart
-            data={chartData}
-            candleData={candleData}
-            chartType={chartType}
-          />
-        </div>
+        {localLoading ? (
+          <div style={{ textAlign: "center", fontSize: "1rem", color: "#555" }}>
+            Loading chart data...
+          </div>
+        ) : (
+          <div style={{ width: "1400px", maxWidth: "100%" }}>
+            <StockChart
+              key={`${code}-${timeRange}-${chartType}`} // force remount
+              data={chartData}
+              candleData={candleData}
+              chartType={chartType}
+            />
+          </div>
+        )}
       </div>
     </>
   );

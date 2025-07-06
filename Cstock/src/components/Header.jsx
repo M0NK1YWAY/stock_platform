@@ -3,8 +3,11 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import stockList from "../data/china_stocks.json";
 import { FaSearch } from "react-icons/fa";
+import { useLoading } from "../context/LoadingContext";
 
 export default function Header() {
+  const { setLoading } = useLoading(); // global loading setter
+
   const [search, setSearch] = useState("");
   const [filtered, setFiltered] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -41,7 +44,25 @@ export default function Header() {
         zIndex: 1000
       }}
     >
-      <h2 style={{ margin: 0, color: "#2c3e50" }}>CN Stocks</h2>
+      <button
+        onClick={() => {
+          setLoading(true); // trigger loading overlay
+          navigate("/");
+        }}
+        style={{
+          margin: 0,
+          fontSize: "1.5rem",
+          fontWeight: "bold",
+          color: "#2c3e50",
+          background: "none",
+          border: "none",
+          padding: 0,
+          cursor: "pointer",
+          outline: "none"
+        }}
+      >
+        CN Stocks
+      </button>
 
       <div
         style={{
