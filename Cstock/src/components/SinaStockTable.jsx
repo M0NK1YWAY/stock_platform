@@ -1,6 +1,7 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
 import stockList from "../data/china_stocks.json"; // local code+name list
+import Header from "./Header"; // adjust the path if needed
 
 import {
   thStyle,
@@ -10,7 +11,7 @@ import {
   paginationButtonStyle
 } from "../styles/SinaStockTableStyles";
 
-export default function SinaStockTable() {
+export default function SinaStockTable({ setLoading }) {
   const [sortConfig, setSortConfig] = useState({
     key: null,
     direction: "none"
@@ -19,7 +20,6 @@ export default function SinaStockTable() {
   const itemsPerPage = 20;
   const [liveData, setLiveData] = useState([]);
   const [jumpPage, setJumpPage] = useState("");
-  const [loading, setLoading] = useState(true);
 
   const sortedStocks = [...liveData].sort((a, b) => {
     if (!sortConfig.key || sortConfig.direction === "none") return 0;
@@ -34,54 +34,54 @@ export default function SinaStockTable() {
   const totalPages = Math.ceil(sortedStocks.length / itemsPerPage);
 
   useEffect(() => {
-    const fetchLiveData = async () => {
-      try {
-        const batches = [];
-        const step = 50; // safe batch size
-        for (let i = 0; i < stockList.length; i += step) {
-          const codes = stockList
-            .slice(i, i + step)
-            .map((s) =>
-              s.code.startsWith("6") ? `sh${s.code}` : `sz${s.code}`
-            )
-            .join(",");
-          const res = await axios.get(`https://qt.gtimg.cn/q=${codes}`, {
-            responseType: "text"
-          });
-          batches.push(...res.data.trim().split("\n"));
-        }
-
-        const parsed = batches.map((line) => {
-          const fields = line.split("~");
-          return {
-            code: fields[2],
-            name: fields[1],
-            last: fields[3],
-            high: fields[33],
-            low: fields[34],
-            change: (parseFloat(fields[3]) - parseFloat(fields[4])).toFixed(2),
-            changePercent: (
-              ((parseFloat(fields[3]) - parseFloat(fields[4])) /
-                parseFloat(fields[4])) *
-              100
-            ).toFixed(2),
-            volume: (parseFloat(fields[6]) / 1e6).toFixed(2),
-            time: fields[30] || ""
-          };
+  const fetchLiveData = async () => {
+    try {
+      const batches = [];
+      const step = 50;
+      for (let i = 0; i < stockList.length; i += step) {
+        const codes = stockList
+          .slice(i, i + step)
+          .map((s) =>
+            s.code.startsWith("6") ? `sh${s.code}` : `sz${s.code}`
+          )
+          .join(",");
+        const res = await axios.get(`https://qt.gtimg.cn/q=${codes}`, {
+          responseType: "text"
         });
-
-        setLiveData(parsed);
-        // Only set loading to false after first successful fetch
-        setLoading(false);
-      } catch (err) {
-        console.error("Failed to fetch Tencent data:", err);
+        batches.push(...res.data.trim().split("\n"));
       }
-    };
 
-    fetchLiveData();
-    const interval = setInterval(fetchLiveData, 10000); // every 10 sec
-    return () => clearInterval(interval);
-  }, []);
+      const parsed = batches.map((line) => {
+        const fields = line.split("~");
+        return {
+          code: fields[2],
+          name: fields[1],
+          last: fields[3],
+          high: fields[33],
+          low: fields[34],
+          change: (parseFloat(fields[3]) - parseFloat(fields[4])).toFixed(2),
+          changePercent: (
+            ((parseFloat(fields[3]) - parseFloat(fields[4])) / parseFloat(fields[4])) *
+            100
+          ).toFixed(2),
+          volume: (parseFloat(fields[6]) / 1e6).toFixed(2),
+          time: fields[30] || ""
+        };
+      });
+
+      setLiveData(parsed);
+    } catch (err) {
+      console.error("Failed to fetch Tencent data:", err);
+    } finally {
+      setLoading(false); // Always stop loading
+    }
+  };
+
+  fetchLiveData();
+  const interval = setInterval(fetchLiveData, 10000);
+  return () => clearInterval(interval);
+}, [setLoading]);
+
 
   const toggleSort = (key) => {
     setSortConfig((prev) => {
@@ -117,17 +117,9 @@ export default function SinaStockTable() {
       setJumpPage(""); // Clear input after jump
     }
   };
-  if (loading) {
-    return (
-      <div style={{ textAlign: "center", padding: "2rem", fontSize: "18px" }}>
-        Loading stock data...
-      </div>
-    );
-  }
 
   return (
     <>
-      {" "}
       <table
         style={{
           width: "100%",

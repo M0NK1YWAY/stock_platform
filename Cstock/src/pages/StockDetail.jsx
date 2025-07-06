@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 import axios from "axios";
 import StockChart from "../components/StockChart";
 
-export default function StockDetail() {
+export default function StockDetail({ setLoading }) {
   const { code } = useParams();
   const [chartData, setChartData] = useState([]);
   const [timeRange, setTimeRange] = useState("1D");
@@ -14,43 +14,44 @@ export default function StockDetail() {
 
   useEffect(() => {
     const fetchChartData = async () => {
-      const secid = code.startsWith("6") ? `1.${code}` : `0.${code}`;
-
-      const kltMap = {
-        "1D": "1",
-        "5D": "5",
-        "1M": "101",
-        "6M": "101",
-        "1Y": "101"
-      };
-
-      const klt = kltMap[timeRange];
-      const today = new Date().toISOString().slice(0, 10).replace(/-/g, "");
-
-      const begMap = {
-        "1D": getDaysAgo(1),
-        "5D": getDaysAgo(5),
-        "1M": getDaysAgo(30),
-        "6M": getDaysAgo(180),
-        "1Y": getDaysAgo(365)
-      };
-
-      const beg = begMap[timeRange];
-
-      const url = `https://push2his.eastmoney.com/api/qt/stock/kline/get?secid=${secid}&fields1=f1,f2,f3,f4,f5,f6&fields2=f51,f52,f53,f54,f55,f56,f57,f58,f59,f60,f61&klt=${klt}&fqt=1&beg=${beg}&end=${today}`;
-
       try {
+        const secid = code.startsWith("6") ? `1.${code}` : `0.${code}`;
+
+        const kltMap = {
+          "1D": "1",
+          "5D": "5",
+          "1M": "101",
+          "6M": "101",
+          "1Y": "101"
+        };
+
+        const klt = kltMap[timeRange];
+        const today = new Date().toISOString().slice(0, 10).replace(/-/g, "");
+
+        const begMap = {
+          "1D": getDaysAgo(1),
+          "5D": getDaysAgo(5),
+          "1M": getDaysAgo(30),
+          "6M": getDaysAgo(180),
+          "1Y": getDaysAgo(365)
+        };
+
+        const beg = begMap[timeRange];
+
+        const url = `https://push2his.eastmoney.com/api/qt/stock/kline/get?secid=${secid}&fields1=f1,f2,f3,f4,f5,f6&fields2=f51,f52,f53,f54,f55,f56,f57,f58,f59,f60,f61&klt=${klt}&fqt=1&beg=${beg}&end=${today}`;
+
         const res = await axios.get(url);
         const klines = res.data?.data?.klines || [];
         const stockName = res.data?.data?.name || code;
         setStockName(stockName);
+
         const prevClose = parseFloat(res.data?.data?.preKPrice);
         setPrevClose(prevClose);
 
         const candleParsed = klines.map((entry) => {
           const parts = entry.split(",");
           return {
-            time: parts[0], // this is 'YYYY-MM-DD HH:MM'
+            time: parts[0],
             open: parseFloat(parts[1]),
             close: parseFloat(parts[2]),
             high: parseFloat(parts[3]),
@@ -58,9 +59,7 @@ export default function StockDetail() {
             volume: parseInt(parts[5])
           };
         });
-
         setCandleData(candleParsed);
-        
 
         const parsed = klines.map((entry) => {
           const parts = entry.split(",");
@@ -75,15 +74,16 @@ export default function StockDetail() {
             priceChange: (price - prevClose) / prevClose
           };
         });
-
         setChartData(parsed);
       } catch (e) {
         console.error("Data fetch failed:", e);
+      } finally {
+        setLoading(false); // mark loading complete globally
       }
     };
 
     fetchChartData();
-  }, [code, timeRange]);
+  }, [code, timeRange, setLoading]);
 
   function getDaysAgo(n) {
     const d = new Date();
